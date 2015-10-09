@@ -5,4 +5,7 @@
 /pkg/
 /tmp/
 
+/spec/fixtures/gem-sample-1.2.3.rc0
+/spec/fixtures/rails-sample-1.2.3.rc0
+
 Gemfile.lock
