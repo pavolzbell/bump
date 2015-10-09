@@ -2,6 +2,24 @@
 
 Bump versions with ease
 
+## TODO
+
+- add `bump --generate=A --schema=S` or `bump --schema=S A` 
+  - requires `--schema`
+  - creates `.bump`
+  - creates `bin/bump`
+  - creates `lib/sample/version.rb` or `config/version.rb`
+  - should also check and fix gemspec
+  - fails on or ignores other irrelevant options?
+- change default schema to `gem`
+- mention `~/.bump` and `.bump` and their relation to Git root vs `--root`
+- add installation / setup notes
+- add basic usage documentation
+- document options a bit more here
+- document pattern formatting
+- improve stderr
+- add more tests
+
 ## Installation
 
 ```
