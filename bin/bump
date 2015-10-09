@@ -1,0 +1,176 @@
+#!/usr/bin/env ruby
+
+require 'io/console'
+require 'optparse'
+require 'pathname'
+
+BINDING = self.instance_eval { binding }
+ROOT = `git rev-parse --show-toplevel`.strip
+
+def new_modules_after
+  modules = ObjectSpace.each_object(Module).to_a
+  yield
+  ObjectSpace.each_object(Module).to_a - modules
+end
+
+def sub_build(pattern, application, numbers)
+  pattern.gsub! /%[av]/, '%a' => application, '%v' => numbers.compact * '.'
+  pattern.gsub(/%[mnpr]/) { |s| numbers['mnpr'.index s[-1]] }
+end
+
+module GEM
+  def self.path
+    File.expand_path Dir['lib/*/version.rb'].first
+  end
+
+  def self.pattern
+    <<-GEM
+module %a
+  VERSION = '%v'
+end
+    GEM
+  end
+
+  def self.resolve(path)
+    m = new_modules_after { require path || self.path }.find { |m| m.name !~ /version$/i }
+    [m.name, m.const_get('VERSION').split('.', 4)]
+  end
+end
+
+module RAILS
+  def self.path
+    File.expand_path 'config/version.rb'
+  end
+
+  def self.pattern
+    <<-RAILS
+module %a
+  module VERSION
+    MAJOR = %m
+    MINOR = %n
+    PATCH = %p
+
+    PRE = '%r'
+
+    STRING = [MAJOR, MINOR, PATCH, PRE].compact * '.'
+  end
+end
+    RAILS
+  end
+
+  def self.resolve(path)
+    m = new_modules_after { require path || self.path }.find { |m| m.name !~ /version$/i }
+    [m.name, m.const_get('VERSION').const_get('STRING').split('.', 4)]
+  end
+end
+
+branches = %w(master staging beta)
+message = 'Bump version to %v'
+name = 'v%v'
+pre = nil
+release = false
+silent = false
+tag = true
+
+root, file = nil
+input, output = nil
+schema = 'rails'
+repository = 'origin'
+pull = true
+push = true
+
+number = 'patch'
+index = nil
+
+trap(:SIGINT) { abort }
+
+ARGV.options do |o|
+  PROGRAM = o.program_name
+
+  def o.bind(*args)
+    args = (args * '').split /\s+/, 4
+    name, desc = args.shift, args.pop
+    args << Array if args[1] =~ /<list>/
+    args.delete '--'
+    value = BINDING.local_variable_get name
+    args << "#{desc}#{", default #{[value] * ','}" unless value.nil?}"
+    on(*args) { |v| BINDING.local_variable_set name, v }
+  end
+
+  o.banner << ' (major|minor|patch|pre)'
+  o.on_tail('-h', '--help') { abort o.to_s }
+
+  o.bind 'branches    -b --branches=<list>    Branches to sync'
+  o.bind 'message     -m --message=<pattern>  Commit message pattern'
+  o.bind 'name        -n --name=<pattern>     Tag name pattern'
+  o.bind 'pre         -p --pre=<word>         Pre-relase suffix'
+  o.bind 'release     -r --[no-]release       Ignore PRE part'
+  o.bind 'silent      -s --[no-]silent        Prompt for confirmation'
+  o.bind 'tag         -t --[no-]tag           Tag bump commit'
+  o.bind 'root        -- --root=<path>        Working directory, default Git repository'
+  o.bind 'file        -- --file=<path>        Both input and output file path'
+  o.bind 'input       -- --input=<path>       Only input file path'
+  o.bind 'output      -- --output=<path>      Only output file path'
+  o.bind 'schema      -- --schema=(gem|rails) Schema pattern name'
+  o.bind 'repository  -- --repo=<repository>  Pull and push repository'
+  o.bind 'pull        -- --[no-]pull          Pull recent changes'
+  o.bind 'push        -- --[no-]push          Push after bump'
+
+  o.load('~/.bump')
+  o.load(File.expand_path '.bump', ROOT)
+  o.parse!
+
+  root ||= ROOT
+  number = ARGV.shift || number
+  index = %w(MAJOR MINOR PATCH PRE).index number.upcase
+
+  abort "#{PROGRAM}: invalid option: --schema=#{schema}" unless schema =~ /gem|rails/i
+  abort "#{PROGRAM}: too many arguments" if ARGV.any?
+  abort "#{PROGRAM}: invalid argument: #{number}" unless index
+
+  schema = self.class.const_get schema.upcase
+  number = number.downcase
+end
+
+abort unless root
+
+Dir.chdir root do
+  BRANCH = `git rev-parse --abbrev-ref HEAD`.strip
+
+  ([nil] + branches).each_cons(2) do |base, branch|
+    abort unless system "git checkout #{branch}"
+    abort unless system "git pull #{repository} #{branch}" if pull
+    abort unless system "git merge #{base}" if base
+  end
+
+  application, data = schema.resolve input || file
+
+  abort "#{PROGRAM}: invalid application: #{application}" if application.empty?
+  abort "#{PROGRAM}: invalid version data: #{data * ','}" if data.include?('') || !(3..4) === data.compact.size
+
+  numbers = data[0..2].each_with_index.map { |n, i| i <= index ? (i == index ? n.next : n) : 0 }
+  numbers << (pre || (data.size == 4 && index == 3 ? data[-1].next : data[-1])) unless release
+  numbers.pop if numbers.size == 4 && numbers.last.to_s.empty?
+
+  puts "Bump #{application} from #{data.compact * '.'} to #{numbers.compact * '.'}"
+
+  unless silent
+    puts 'Press any key to continue'
+    abort unless STDIN.getc
+  end
+
+  path = output || file || schema.path
+  content = sub_build schema.pattern, application, numbers
+
+  File.write path, content
+
+  abort unless system "git add #{path} && git commit -m '#{sub_build message, application, numbers}'"
+  abort unless system "git tag '#{sub_build name, application, numbers}'" if tag
+
+  branches.reverse.each_cons(2) do |base, branch|
+    abort unless system "git checkout #{branch} && git merge #{base}"
+  end
+
+  abort unless system "git checkout #{BRANCH}"
+  abort unless system "git push #{repository} --follow-tags" if push
+end
