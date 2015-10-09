@@ -172,5 +172,5 @@ Dir.chdir root do
   end
 
   abort unless system "git checkout #{BRANCH}"
-  abort unless system "git push #{repository} --follow-tags" if push
+  abort unless system "git push #{repository} && git push #{repository} --tags" if push
 end
