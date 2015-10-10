@@ -1,6 +1,23 @@
 # TODO refactor custom DSL to proper RSpec matchers
 
 module BumpHelper
+  class Schema < OpenStruct
+    attr_accessor :name
+
+    def initialize(name, attrs)
+      @name = name
+      super attrs
+    end
+
+    def to_s
+      name.to_s
+    end
+  end
+
+  def relative_path(path)
+    "../../../#{path.sub /\A%/, 'spec/fixtures'}"
+  end
+
   def load_sample
     FileUtils.cp_r expand_path("%/#{sample}"), expand_path('.')
     cd(sample) && Dir.chdir(expand_path '.')
@@ -9,6 +26,11 @@ module BumpHelper
   def load_sample_and_input
     load_sample
     expect(input).to have_same_file_content_like("%/outputs/#{sample}")
+  end
+
+  def load_empty_sample
+    FileUtils.cp_r expand_path('%/empty-sample'), expand_path('.')
+    cd('empty-sample') && Dir.chdir(expand_path '.')
   end
 
   def unload_sample
@@ -21,9 +43,9 @@ module BumpHelper
   def bump(*args)
     # uncomment this line to see output directly in running tests,
     # note that they always fail since the command is executed twice
-    #system "../../../bin/bump #{args * ' '}"
+    # system "#{relative_path 'bin/bump'} #{args * ' '}"
 
-    Runner.new { run "../../../bin/bump #{args * ' '}" }
+    Runner.new { run "#{relative_path 'bin/bump'} #{args * ' '}" }
   end
 
   def expect(*args)
@@ -54,11 +76,12 @@ module BumpHelper
 
   def fail_on(options)
     lambda {
-      options = { stderr: options } unless options.is_a? Hash
+      options = { error: options } unless options.is_a? Hash
       options[:status] ||= 1
+      options[:stderr] ||= options[:error] ? "bump: #{options[:error]}" : nil
 
       expect(last_command_started).to have_exit_status(options[:status])
-      expect(last_command_started).to have_output_on_stderr("bump: #{options[:stderr]}") if options[:stderr]
+      expect(last_command_started).to have_output_on_stderr(options[:stderr]) if options[:stderr]
     }
   end
 

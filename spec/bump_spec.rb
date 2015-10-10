@@ -1,22 +1,53 @@
 require 'ostruct'
 require 'spec_helper'
 
-class Setup < OpenStruct
-end
+Schema = BumpHelper::Schema
+
+SCHEMAS = [
+  Schema.new(:gem, path: 'lib/sample/version.rb'),
+  Schema.new(:rails, path: 'config/version.rb')
+]
 
 describe Bump, type: :aruba do
   it 'has a version number' do
     expect(Bump::VERSION).not_to be nil
   end
 
-  SETUPS = [
-    Setup.new(sample: 'gem-sample-1.2.3.rc0', input: 'lib/sample/version.rb', output: 'lib/sample/version.rb'),
-    Setup.new(sample: 'rails-sample-1.2.3.rc0', input: 'config/version.rb', output: 'config/version.rb')
-  ].each do |s|
-    context "with #{s.sample}" do
-      let(:sample) { s.sample }
-      let(:input) { s.input }
-      let(:output) { s.output }
+  SCHEMAS.each do |schema|
+    context "when initializing as #{schema}" do
+      let(:init) { "#{schema}-sample-init" }
+      let(:sample) { "#{schema}-sample-1.2.3.rc0" }
+      let(:input) { schema.path }
+      let(:output) { schema.path }
+
+      after(:each) { unload_sample }
+
+      it 'creates files' do
+        load_empty_sample
+        bump("--init=sample:Sample --schema=#{schema}").call
+        expect(last_command_started).to be_successfully_executed
+        expect('.bump').to have_same_file_content_like("%/#{init}/.bump")
+        expect('bin/bump').to have_same_file_content_like("%/#{init}/bin/bump")
+        expect(output).to have_same_file_content_like("%/#{init}/#{schema.path}")
+      end
+
+      context 'when files already exist' do
+        it 'does not overwrite existing files' do
+          load_sample
+          bump("--init=sample:Sample --schema=#{schema}").call
+          expect(last_command_started).to be_successfully_executed
+          expect('.bump').to have_same_file_content_like("%/#{sample}/.bump")
+          expect('bin/bump').to have_same_file_content_like("%/#{init}/bin/bump")
+          expect(output).to have_same_file_content_like("%/#{sample}/#{schema.path}")
+        end
+      end
+    end
+
+    context "with #{schema}-sample-1.2.3.rc0" do
+      let(:init) { "#{schema}-sample-init" }
+      let(:sample) { "#{schema}-sample-1.2.3.rc0" }
+      let(:input) { schema.path }
+      let(:output) { schema.path }
 
       before(:each) { load_sample_and_input }
       after(:each) { unload_sample }
@@ -91,20 +122,19 @@ describe Bump, type: :aruba do
     after(:each) { unload_sample }
 
     it 'exists on too many arguments' do
-      expect(bump 'major minor').to fail_on('too many arguments')
+      expect(bump 'major minor').to fail_with('too many arguments')
     end
 
     it 'exists on unknown arguments' do
-      expect(bump 'pre-release').to fail_on('invalid argument: pre-release')
+      expect(bump 'pre-release').to fail_with('invalid argument: pre-release')
     end
 
     it 'exists on unknown options' do
-      expect(bump '--unknown-option=hello').to fail_on('invalid option: --unknown-option=hello')
+      expect(bump '--unknown-option=hello').to fail_with('invalid option: --unknown-option=hello')
     end
 
     it 'exists on empty root' do
-      # TODO this probably needs some stderr message
-      expect(bump '--root=').to fail_with status: 1
+      expect(bump '--root=').to fail_with('invalid option: --root=')
     end
 
     it 'exists on non-existing root' do
@@ -113,25 +143,75 @@ describe Bump, type: :aruba do
     end
 
     it 'exists on empty schema' do
-      expect(bump '--schema=').to fail_on('invalid option: --schema=')
+      expect(bump '--schema=').to fail_with('invalid option: --schema=')
     end
 
     it 'exists on unknown schema' do
-      expect(bump '--schema=hello').to fail_on('invalid option: --schema=hello')
+      expect(bump '--schema=hello').to fail_with('invalid option: --schema=hello')
     end
 
     context 'with invalid input' do
-      def args(input)
-        "--schema=gem --input=#{expand_path "gem-#{input}"} major"
+      let(:fix) { "Already on 'master'\nbump: " }
+
+      it 'exists on empty file' do
+        input = '%/inputs/gem-empty-file.rb'
+        stderr = "#{fix}unable to resolve #{relative_path input}"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
       end
 
-      # TODO these probably need some stderr messages
-      it('exists on empty file') { expect(bump args('empty-file')).to fail_with status: 1 }
-      it('exists on inlined file') { expect(bump args('inlined-file')).to fail_with status: 1 }
-      it('exists on missing module name') { expect(bump args('missing-module-name')).to fail_with status: 1 }
-      it('exists on incorrect constant name') { expect(bump args('incorrect-constant-name')).to fail_with status: 1 }
-      it('exists on 2 version numbers') { expect(bump args('2-version-numbers')).to fail_with status: 1 }
-      it('exists on 5 vrsion numbers') { expect(bump args('5-version-numbers')).to fail_with status: 1 }
+      it 'exists on missing module' do
+        input = '%/inputs/gem-missing-module.rb'
+        stderr = "#{fix}unable to resolve #{relative_path input}"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on incorrect module name' do
+        input = '%/inputs/gem-incorrect-module-name.rb'
+        stderr = "#{fix}unable to resolve #{relative_path input}"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on missing constant name' do
+        input = '%/inputs/gem-missing-constant.rb'
+        stderr = "#{fix}unable to resolve #{relative_path input}"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on incorrect constant name' do
+        input = '%/inputs/gem-incorrect-constant-name.rb'
+        stderr = "#{fix}unable to resolve #{relative_path input}"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on 2 version numbers' do
+        input = '%/inputs/gem-2-version-numbers.rb'
+        stderr = "#{fix}invalid version data: 1,2"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on 5 version nubmers' do
+        input = '%/inputs/gem-5-version-numbers.rb'
+        stderr = "#{fix}invalid version data: 1,2,3,4,5"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on missing major number' do
+        input = '%/inputs/gem-missing-major-number.rb'
+        stderr = "#{fix}invalid version data: ,2,3"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on missing minor number' do
+        input = '%/inputs/gem-missing-minor-number.rb'
+        stderr = "#{fix}invalid version data: 1,,3"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
+
+      it 'exists on missing patch number' do
+        input = '%/inputs/gem-missing-patch-number.rb'
+        stderr = "#{fix}invalid version data: 1,2"
+        expect(bump "--input=#{expand_path input} major").to fail_with(stderr: stderr)
+      end
     end
   end
 end
