@@ -1,6 +1,12 @@
+## 0.1.1
+
+*   Fix executable status of created `bin/bump`
+
+    *Pavol Zbell*
+
 ## 0.1.0
 
-*   Add support for `--init` option 
+*   Add support for `--init` option
 *   Switch to `gem` schema by default
 *   Partially improve error reporting
 
