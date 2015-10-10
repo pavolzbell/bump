@@ -1,0 +1,2 @@
+#!/usr/bin/env ruby
+Dir.glob('*sample*').each { |f| `tar -cvzk #{f} > #{f}.tgz` unless f.end_with? '.tgz' }
