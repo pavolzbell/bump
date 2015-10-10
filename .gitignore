@@ -3,11 +3,10 @@
 
 /doc/
 /pkg/
+/spec/fixtures/*sample*
 /tmp/
 
-/spec/fixtures/gem-sample-1.2.3.rc0
-/spec/fixtures/rails-sample-1.2.3.rc0
-
 *.gem
+!*.tgz
 
 Gemfile.lock
