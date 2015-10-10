@@ -154,6 +154,7 @@ Dir.chdir root do
     create '.bump', "--schema=#{schema.name.downcase}\n"
     create 'bin/bump', "#!/usr/bin/env ruby\nsystem \"bundle exec bump \#{ARGV * ' '}\"\n"
     create schema.path(sub), sub_build(schema.pattern, application || sub, %w(0 0 0))
+    system 'chmod 755 bin/bump'
     exit
   end
 
