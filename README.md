@@ -4,7 +4,6 @@ Bump versions with ease
 
 ## TODO
 
-- fix `git push repo branch`
 - support for `My::Application` with `--types=module::class` and/or `--init=module.My::class.App` (+ short variants `m` and `c`)
 - enable `%a0` in pattern (`%a` is last element, `%A` is full form with `::`)
 - support short and numeric forms for number arg `patch == 3 == r` (mnpr)

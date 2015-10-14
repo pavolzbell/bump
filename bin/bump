@@ -160,7 +160,7 @@ Dir.chdir root do
 
   BRANCH = `git rev-parse --abbrev-ref HEAD`.strip
 
-  ([nil] + branches).each_cons(2) do |base, branch|
+  [nil, branches].flatten.each_cons(2) do |base, branch|
     abort unless system "git checkout #{branch}"
     abort unless system "git pull #{repository} #{branch}" if pull
     abort unless system "git merge #{base}" if base
@@ -198,8 +198,9 @@ Dir.chdir root do
 
   branches.reverse.each_cons(2) do |base, branch|
     abort unless system "git checkout #{branch} && git merge #{base}"
+    abort unless system "git push #{repository} #{branch}" if push
   end
 
   abort unless system "git checkout #{BRANCH}"
-  abort unless system "git push #{repository} && git push #{repository} --tags" if push
+  abort unless system "git push #{repository} #{BRANCH} && git push #{repository} --tags" if push
 end
