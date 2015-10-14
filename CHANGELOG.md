@@ -1,3 +1,9 @@
+## 0.1.2
+
+*   Fix pushing to multiple branches
+
+    *Pavol Zbell*
+
 ## 0.1.1
 
 *   Fix executable status of created `bin/bump`
