@@ -1,4 +1,3 @@
-require 'ostruct'
 require 'spec_helper'
 
 shared_examples_for 'bump' do |schema, version|
@@ -14,7 +13,7 @@ shared_examples_for 'bump' do |schema, version|
 end
 
 command 'bump' do
-  it 'has a version number' do
+  it 'has version number' do
     expect(Bump::VERSION).not_to be nil
   end
 
@@ -30,6 +29,62 @@ command 'bump' do
     let(:output) { 'config/version.rb' }
   end
 
+  context 'with .bump' do
+    before(:each) { load_empty_sample }
+    after(:each) { unload_sample }
+
+    it 'ignores arguments' do
+      File.write '.bump', 'invalid-argument'
+      expect(bump '--no-pull').to fail_with(stderr: "Already on 'master'\nbump: unable to compute path for gem schema")
+    end
+
+    it 'parses options' do
+      File.write '.bump', '--invalid-option'
+      expect(bump '--no-pull').to fail_with('invalid option: --invalid-option')
+    end
+
+    context 'with override' do
+      it 'honors actual arguments' do
+        File.write '.bump', '--branches=x'
+        expect(bump '--no-pull --branches=y').to fail_with(stderr: "error: pathspec 'y' did not match any file(s) known to git.")
+      end
+
+      it 'exits fast on invalid option' do
+        File.write '.bump', '--invalid-option=x'
+        expect(bump '--no-pull --invalid-option=y').to fail_with('invalid option: --invalid-option=x')
+      end
+    end
+  end
+
+  context 'with syntax' do
+    let(:missing_argument) { 'bump: missing argument: %s' }
+    let(:no_files_matched) { "error: pathspec '%s' did not match any file(s) known to git." }
+
+    it '-o' do
+      expect(bump '-b').to fail_with(stderr: missing_argument % '-b')
+    end
+
+    it '-ox' do
+      expect(bump '-bx').to fail_with(stderr: no_files_matched % 'x')
+    end
+
+    it '-o x' do
+      expect(bump '--b x').to fail_with(stderr: no_files_matched % 'x')
+    end
+
+    it '--opt' do
+      expect(bump '--branches').to fail_with(stderr: missing_argument % '--branches')
+    end
+
+    it '--opt x' do
+      expect(bump '--branches x').to fail_with(stderr: no_files_matched % 'x')
+    end
+
+    it '--opt=x' do
+      expect(bump '--branches=x').to fail_with(stderr: no_files_matched % 'x')
+    end
+  end
+
   context 'with invalid arguments' do
     let(:sample) { 'gem-sample-1.2.3.rc0' }
 
@@ -41,11 +96,16 @@ command 'bump' do
     end
 
     it 'exists on unknown arguments' do
-      expect(bump 'pre-release').to fail_with('invalid argument: pre-release')
+      expect(bump 'invalid-argument').to fail_with('invalid argument: invalid-argument')
     end
 
     it 'exists on unknown options' do
-      expect(bump '--unknown-option=hello').to fail_with('invalid option: --unknown-option=hello')
+      expect(bump '-X').to fail_with('invalid option: -X')
+      expect(bump '-Xx').to fail_with('invalid option: -Xx')
+      expect(bump '-X x').to fail_with('invalid option: -X')
+      expect(bump '--invalid-option').to fail_with('invalid option: --invalid-option')
+      expect(bump '--invalid-option x').to fail_with('invalid option: --invalid-option')
+      expect(bump '--invalid-option=x').to fail_with('invalid option: --invalid-option=x')
     end
   end
 end

@@ -7,9 +7,9 @@ command 'bump' do
     end
   end
 
-  describe '--schema=hello' do
+  describe '--schema=x' do
     it 'exists on unknown schema' do
-      expect(bump '--schema=hello').to fail_with('invalid option: --schema=hello')
+      expect(bump '--schema=x').to fail_with('invalid option: --schema=x')
     end
   end
 end

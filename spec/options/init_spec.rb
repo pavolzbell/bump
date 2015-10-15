@@ -51,4 +51,8 @@ command 'bump' do
       let(:output) { 'config/version.rb' }
     end
   end
+
+  describe '--init --root' do
+    pending
+  end
 end
