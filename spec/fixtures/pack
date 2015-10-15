@@ -1,2 +1,3 @@
 #!/usr/bin/env ruby
+Dir.chdir(File.expand_path '../', __FILE__)
 Dir.glob('*sample*').each { |f| `tar -cvzk #{f} > #{f}.tgz` unless f.end_with? '.tgz' }
