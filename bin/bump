@@ -21,7 +21,8 @@ end
 
 module GEM
   def self.path(*args)
-    File.expand_path args.any? ? "lib/#{args * '/'}/version.rb" : Dir['lib/**/version.rb'].first
+    return File.expand_path "lib/#{args * '/'}/version.rb" if args.any?
+    Dir['lib/**/version.rb'].first.tap { |f| return File.expand_path f if f }
   end
 
   def self.pattern
@@ -33,7 +34,7 @@ end
   end
 
   def self.resolve(path)
-    m = new_modules_after { require path || self.path }.find { |m| m.name !~ /version$/i }
+    m = new_modules_after { require path }.find { |m| m.name !~ /version$/i }
     [m.name, m.const_get('VERSION').split('.')]
   end
 end
@@ -60,7 +61,7 @@ end
   end
 
   def self.resolve(path)
-    m = new_modules_after { require path || self.path }.find { |m| m.name !~ /version$/i }
+    m = new_modules_after { require path }.find { |m| m.name !~ /version$/i }
     [m.name, m.const_get('VERSION').const_get('STRING').split('.')]
   end
 end
@@ -167,9 +168,11 @@ Dir.chdir root do
   end
 
   begin
-    path = input || file
+    path = input || file || schema.path
+    puts "QQ #{schema.path} #{Dir['lib/**/version.rb']}"
     application, data = schema.resolve path
   rescue StandardError, SyntaxError
+    abort "#{PROGRAM}: unable to compute path for #{schema.name.downcase} schema" unless path
     abort "#{PROGRAM}: unable to resolve #{Pathname.new(path).relative_path_from Pathname.new(root)}"
   end
 
