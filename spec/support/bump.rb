@@ -1,21 +1,12 @@
 # TODO refactor custom DSL to proper RSpec matchers
 
+require 'pathname'
+
 module BumpHelper
-  class Schema < OpenStruct
-    attr_accessor :name
-
-    def initialize(name, attrs)
-      @name = name
-      super attrs
-    end
-
-    def to_s
-      name.to_s
-    end
-  end
+  ROOT = File.expand_path '../../..', __FILE__
 
   def relative_path(path)
-    "../../../#{path.sub /\A%/, 'spec/fixtures'}"
+    File.join Pathname.new(ROOT).relative_path_from(Pathname.new(Dir.pwd)), path.sub(/\A%/, 'spec/fixtures')
   end
 
   def load_sample
