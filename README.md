@@ -8,7 +8,6 @@ Bump versions with ease
 
 - support for `My::Application` with `--types=module::class` and/or `--init=module.My::class.App` (+ short variants `m` and `c`)
 - enable `%a0` in pattern (`%a` is last element, `%A` is full form with `::`)
-- support short and numeric forms for number arg `patch == 3 == r` (mnpr)
 - add `--author` for commit author (or add `--commit` for custom commit args? similar for tag, ...)
 - mention `~/.bump` and `.bump` and their relation to Git root vs `--root`
 - add installation / setup notes
