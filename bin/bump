@@ -124,13 +124,13 @@ ARGV.options do |o|
   o.parse!
 
   root ||= ROOT
-  number = ARGV.shift || number
-  index = %w(MAJOR MINOR PATCH PRE).index number.upcase
+  number = ((value = ARGV.shift) || number).upcase
+  index = %w(M N P R).index(number) || %w(MAJOR MINOR PATCH PRE).index(number)
 
   abort "#{PROGRAM}: invalid option: --root=" if root.empty?
   abort "#{PROGRAM}: invalid option: --schema=#{schema}" unless schema =~ /gem|rails/i
+  abort "#{PROGRAM}: invalid argument: #{value}" unless index
   abort "#{PROGRAM}: too many arguments" if ARGV.any?
-  abort "#{PROGRAM}: invalid argument: #{number}" unless index
 
   schema = self.class.const_get schema.upcase
   number = number.downcase
