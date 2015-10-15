@@ -1,4 +1,4 @@
 language: ruby
 
 script:
-  - bundle exec rspec spec --backtrace
+  - bundle exec rspec

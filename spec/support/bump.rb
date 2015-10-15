@@ -34,7 +34,7 @@ module BumpHelper
   def bump(*args)
     # uncomment this line to see output directly in running tests,
     # note that they always fail since the command is executed twice
-    # system "#{relative_path 'bin/bump'} #{args * ' '}"
+    system "#{relative_path 'bin/bump'} #{args * ' '}"
 
     Runner.new { run "#{relative_path 'bin/bump'} #{args * ' '}" }
   end
