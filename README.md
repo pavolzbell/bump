@@ -13,6 +13,7 @@ Bump versions with ease
 - document options a bit more here
 - document pattern formatting
 - improve stderr
+- test also short options
 - add more tests
 
 ## Installation
@@ -25,6 +26,16 @@ gem 'bump', github: 'pavolzbell/bump'
 
 ```
 bin/bump -h
+```
+
+#### Syntax
+
+`-ox`, `-o x`, `--opt x` or `--opt=x`
+
+## Testing
+
+```
+bundle exec rspec
 ```
 
 ## Contributing
