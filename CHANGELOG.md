@@ -1,5 +1,11 @@
 ## 0.1.3
 
+*   Fix some file path related bugs
+
+    *Pavol Zbell*
+    
+## 0.1.3
+
 *   Support for short version number codes as arguments
 *   Refactor tests and setup Travis
 
