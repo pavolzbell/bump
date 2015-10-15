@@ -1,3 +1,10 @@
+## 0.1.3
+
+*   Support for short version number codes as arguments
+*   Refactor tests and setup Travis
+
+    *Pavol Zbell*
+
 ## 0.1.2
 
 *   Fix pushing to multiple branches
