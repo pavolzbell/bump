@@ -1,5 +1,7 @@
 # Bump
 
+[![Build Status](https://travis-ci.org/pavolzbell/bump.svg)](https://travis-ci.org/pavolzbell/bump)
+
 Bump versions with ease
 
 ## TODO
