@@ -149,7 +149,7 @@ List of path related options
 - `input` – sets version file input, default value depends on schema
 - `output` – sets version file output, default value depends on schema
 
-Paths can be set as absolute paths or a paths relative to `root` directory or to the current working directory in case of the `root` option
+Paths can be set as absolute paths or paths relative to `root` directory or to the current working directory in case of the `root` option
 
 #### Other
 
