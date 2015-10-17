@@ -92,12 +92,15 @@ ARGV.options do |o|
 
   def o.bind(*args)
     args = (args * '').split /\s+/, 4
-    name, desc = args.shift, args.pop
-    args << Array if args[1] =~ /<list>/
+    var, desc, args = args.shift, args.pop, args.reverse
+    args << Array if args[0] =~ /<list>/
     args.delete '--'
-    value = BINDING.local_variable_get name
-    args << "#{desc}#{", default #{[value] * ','}" unless value.nil?}"
-    on(*args) { |v| BINDING.local_variable_set name, v }
+    a, v = args.first, BINDING.local_variable_get(var)
+    args << "#{desc}#{", default #{[v] * ','}" unless v.nil?}"
+    on(*args) do |x|
+      abort "missing argument: #{a.sub(/=.*/, '')}=" if a =~ /=[<(]\w/ && (!x || (x.respond_to?(:empty?) && x.empty?))
+      BINDING.local_variable_set var, x
+    end
   end
 
   o.banner << ' (major|minor|patch|pre)'
@@ -107,7 +110,7 @@ ARGV.options do |o|
   o.bind 'branches    -b --branches=<list>    Branches to sync'
   o.bind 'message     -m --message=<pattern>  Commit message pattern'
   o.bind 'name        -n --name=<pattern>     Tag name pattern'
-  o.bind 'pre         -p --pre=<word>         Pre-relase suffix'
+  o.bind 'pre         -p --pre=<[word]>       Pre-release suffix'
   o.bind 'release     -r --[no-]release       Ignore PRE part'
   o.bind 'silent      -s --[no-]silent        Prompt for confirmation'
   o.bind 'tag         -t --[no-]tag           Tag bump commit'
@@ -124,14 +127,17 @@ ARGV.options do |o|
   o.load(File.expand_path '.bump', ROOT)
   o.parse!
 
+  # TODO Add support for .bump in root here
+  # if root
+  # end
+
   root ||= ROOT
   number = ((value = ARGV.shift) || number).upcase
   index = %w(M N P R).index(number) || %w(MAJOR MINOR PATCH PRE).index(number)
 
-  abort "#{PROGRAM}: invalid option: --root=" if root.empty?
-  abort "#{PROGRAM}: invalid option: --schema=#{schema}" unless schema =~ /gem|rails/i
-  abort "#{PROGRAM}: invalid argument: #{value}" unless index
-  abort "#{PROGRAM}: too many arguments" if ARGV.any?
+  o.abort "invalid option: --schema=#{schema}" unless schema =~ /gem|rails/i
+  o.abort "invalid argument: #{value}" unless index
+  o.abort 'too many arguments' if ARGV.any?
 
   schema = self.class.const_get schema.upcase
   number = number.downcase
@@ -180,7 +186,7 @@ Dir.chdir root do
   abort "#{PROGRAM}: invalid version data: #{data * ','}" if !((3..4) === data.size) || data[0..3].include?('')
 
   numbers = data[0..2].each_with_index.map { |n, i| i <= index ? (i == index ? n.next : n) : 0 }
-  numbers << (pre || (data.size == 4 && index == 3 ? data[-1].next : data[-1])) unless release
+  numbers << (pre || (data.size == 4 && index == 3 ? data[3].next : data[3])) unless release
   numbers.pop if numbers.size == 4 && numbers.last.to_s.empty?
 
   puts "#{PROGRAM}: #{target} from #{data.compact * '.'} to #{numbers.compact * '.'}"
