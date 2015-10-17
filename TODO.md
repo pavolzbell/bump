@@ -1,0 +1,8 @@
+- support for `My::Application` with `--types=module::class` and/or `--init=module.My::class.App` (+ short variants `m` and `c`)
+- enable `%a0` in pattern (`%a` is last element, `%A` is full form with `::`)
+- add `--author` for commit author (or add `--commit` for custom commit args? similar for tag, ...)
+- document options a bit more here
+- document pattern formatting
+- improve stderr
+- test also short options
+- add more tests
