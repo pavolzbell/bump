@@ -14,8 +14,8 @@ def new_modules_after
   ObjectSpace.each_object(Module).to_a - modules
 end
 
-def sub_build(pattern, application, numbers)
-  pattern.gsub! /%[av]/, '%a' => application, '%v' => numbers.compact * '.'
+def sub_build(pattern, target, numbers)
+  pattern.gsub! /%[av]/, '%a' => target, '%v' => numbers.compact * '.'
   pattern.gsub(/%[mnpr]/) { |s| numbers['mnpr'.index s[-1]] }
 end
 
@@ -151,10 +151,10 @@ Dir.chdir root do
       abort "#{PROGRAM}: unable to create #{file}"
     end
 
-    sub, application = init.split ':', 2
+    sub, target = init.split ':', 2
     create '.bump', "--schema=#{schema.name.downcase}\n"
     create 'bin/bump', "#!/usr/bin/env ruby\nsystem \"bundle exec bump \#{ARGV * ' '}\"\n"
-    create schema.path(sub), sub_build(schema.pattern, application || sub, %w(0 0 0))
+    create schema.path(sub), sub_build(schema.pattern, target || sub, %w(0 0 0))
     system 'chmod 755 bin/bump'
     exit
   end
@@ -169,7 +169,7 @@ Dir.chdir root do
 
   begin
     path = input || file || schema.path
-    application, data = schema.resolve path
+    target, data = schema.resolve path
   rescue StandardError, SyntaxError
     abort "#{PROGRAM}: unable to compute path for #{schema.name.downcase} schema" unless path
     abort "#{PROGRAM}: unable to resolve #{Pathname.new(path).relative_path_from Pathname.new(root)}"
@@ -183,7 +183,7 @@ Dir.chdir root do
   numbers << (pre || (data.size == 4 && index == 3 ? data[-1].next : data[-1])) unless release
   numbers.pop if numbers.size == 4 && numbers.last.to_s.empty?
 
-  puts "#{PROGRAM}: #{application} from #{data.compact * '.'} to #{numbers.compact * '.'}"
+  puts "#{PROGRAM}: #{target} from #{data.compact * '.'} to #{numbers.compact * '.'}"
 
   unless silent
     puts 'Press any key to continue'
@@ -191,12 +191,12 @@ Dir.chdir root do
   end
 
   path = output || file || schema.path
-  content = sub_build schema.pattern, application, numbers
+  content = sub_build schema.pattern, target, numbers
 
   File.write path, content
 
-  abort unless system "git add #{path} && git commit -m '#{sub_build message, application, numbers}'"
-  abort unless system "git tag '#{sub_build name, application, numbers}'" if tag
+  abort unless system "git add #{path} && git commit -m '#{sub_build message, target, numbers}'"
+  abort unless system "git tag '#{sub_build name, target, numbers}'" if tag
 
   branches.reverse.each_cons(2) do |base, branch|
     abort unless system "git checkout #{branch} && git merge #{base}"
