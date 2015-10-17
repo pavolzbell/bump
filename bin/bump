@@ -111,7 +111,7 @@ ARGV.options do |o|
   o.bind 'message     -m --message=<pattern>  Commit message pattern'
   o.bind 'name        -n --name=<pattern>     Tag name pattern'
   o.bind 'pre         -p --pre=<[word]>       Pre-release suffix'
-  o.bind 'release     -r --[no-]release       Ignore PRE part'
+  o.bind 'release     -r --[no-]release       Ignore PRE label'
   o.bind 'silent      -s --[no-]silent        Prompt for confirmation'
   o.bind 'tag         -t --[no-]tag           Tag bump commit'
   o.bind 'root        -- --root=<path>        Working directory, default Git repository'
@@ -126,10 +126,7 @@ ARGV.options do |o|
   o.load('~/.bump')
   o.load(File.expand_path '.bump', ROOT)
   o.parse!
-
-  # TODO Add support for .bump in root here
-  # if root
-  # end
+  o.load(File.expand_path '.bump', root) && o.parse! if root
 
   root ||= ROOT
   number = ((value = ARGV.shift) || number).upcase
