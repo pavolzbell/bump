@@ -1,3 +1,9 @@
+## 0.1.5
+
+*   Fix some minor issues with parsing options
+
+    *Pavol Zbell*
+    
 ## 0.1.4
 
 *   Fix some file path related bugs
