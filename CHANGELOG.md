@@ -1,3 +1,9 @@
+## 0.2.0
+
+*   Allow reading custom options file from specified root
+
+    *Pavol Zbell*
+
 ## 0.1.5
 
 *   Fix some minor issues with parsing options
