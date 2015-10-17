@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 command 'bump' do
+  include_examples 'needless_argument', 'tag', :boolean
+
   describe '--silent' do
     pending
   end

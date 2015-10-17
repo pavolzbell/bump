@@ -20,6 +20,8 @@ shared_examples_for 'release' do |schema, version|
 end
 
 command 'bump' do
+  include_examples 'needless_argument', 'release'
+
   describe '--release' do
     include_examples 'release', 'gem', '1.2.3.rc0' do
       let(:sample) { 'gem-sample-1.2.3.rc0' }

@@ -46,6 +46,12 @@ command 'bump' do
     end
   end
 
+  describe '--pre=x' do
+    context 'with invalid pre' do
+      pending
+    end
+  end
+
   describe '--pre=rc1' do
     include_examples 'pre_rc1', 'gem', '1.2.3.rc0' do
       let(:sample) { 'gem-sample-1.2.3.rc0' }

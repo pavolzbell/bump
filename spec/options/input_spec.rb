@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 command 'bump' do
-  describe '--input' do
-    pending
+  include_examples 'mandatory_argument', 'input'
 
+  describe '--input=x' do
     context 'with invalid input' do
       let(:sample) { 'gem-sample-1.2.3.rc0' }
       let(:fix) { "Already on 'master'\nbump: " }
@@ -71,5 +71,9 @@ command 'bump' do
         expect(bump "--input '#{expand_path input}' major").to fail_with(stderr: stderr)
       end
     end
+  end
+
+  describe '--input=sample/input/version.rb' do
+    pending
   end
 end

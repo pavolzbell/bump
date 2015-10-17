@@ -29,7 +29,7 @@ command 'bump' do
     let(:output) { 'config/version.rb' }
   end
 
-  context 'with .bump' do
+  context 'with .bump in Git root' do
     before(:each) { load_empty_sample }
     after(:each) { unload_sample }
 
@@ -43,7 +43,7 @@ command 'bump' do
       expect(bump '--no-pull').to fail_with('invalid option: --invalid-option')
     end
 
-    context 'with override' do
+    context 'with override from command line' do
       it 'honors actual arguments' do
         File.write '.bump', '--branches=x'
         expect(bump '--no-pull --branches=y').to fail_with(stderr: "error: pathspec 'y' did not match any file(s) known to git.")
@@ -54,6 +54,10 @@ command 'bump' do
         expect(bump '--no-pull --invalid-option=y').to fail_with('invalid option: --invalid-option=x')
       end
     end
+  end
+
+  context 'with .bump in custom root' do
+    pending
   end
 
   context 'with syntax' do

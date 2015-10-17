@@ -20,8 +20,12 @@ shared_examples_for 'message_pattern' do |schema, version|
 end
 
 command 'bump' do
-  describe '--message=' do
-    pending
+  include_examples 'mandatory_argument', 'message'
+
+  describe '--message=x' do
+    context 'with invalid message' do
+      pending
+    end
   end
 
   describe '--message="%a %m-%n-%p-%r %v"' do

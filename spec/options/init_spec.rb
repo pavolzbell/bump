@@ -25,12 +25,24 @@ shared_examples_for 'init' do |application, schema|
 end
 
 command 'bump' do
+  include_examples 'mandatory_argument', 'init'
+
+  describe '--init=x' do
+    context 'with invalid target' do
+      pending
+    end
+  end
+
   describe '--init=sample:Sample' do
     include_examples 'init', 'sample:Sample' do
       let(:desire) { 'gem-sample-init' }
       let(:sample) { 'gem-sample-1.2.3.rc0' }
       let(:input) { 'lib/sample/version.rb' }
       let(:output) { 'lib/sample/version.rb' }
+    end
+
+    describe '--root=sample/target' do
+      pending
     end
   end
 
@@ -50,9 +62,5 @@ command 'bump' do
       let(:input) { 'config/version.rb' }
       let(:output) { 'config/version.rb' }
     end
-  end
-
-  describe '--init --root' do
-    pending
   end
 end

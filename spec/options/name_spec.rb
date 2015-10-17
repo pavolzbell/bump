@@ -20,12 +20,12 @@ shared_examples_for 'name_pattern' do |schema, version|
 end
 
 command 'bump' do
-  describe '--name=' do
-    pending
-  end
+  include_examples 'mandatory_argument', 'name'
 
-  describe '--name="%a %v"' do
-    pending
+  describe '--name=x' do
+    context 'with invalid name' do
+      pending
+    end
   end
 
   describe '--name="%a_%m-%n-%p-%r_%v' do
