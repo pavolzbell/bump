@@ -1,8 +1,11 @@
 - support for `My::Application` with `--types=module::class` and/or `--init=module.My::class.App` (+ short variants `m` and `c`)
+- support rails engines
 - enable `%a0` in pattern (`%a` is last element, `%A` is full form with `::`)
 - add `--author` for commit author (or add `--commit` for custom commit args? similar for tag, ...)
 - document options a bit more here
 - document pattern formatting
+- document `#` flag for pattern formatting
 - improve stderr
 - test also short options
 - add more tests
+- add tests: m,n,p must be ints, r is converted to int if possible

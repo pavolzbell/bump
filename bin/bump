@@ -15,9 +15,10 @@ def new_modules_after
 end
 
 def sub_build(pattern, target, numbers)
-  pattern.gsub! /%[av]/, '%a' => target, '%v' => numbers.compact * '.'
-  pattern.gsub!(/%[mnp]/) { |s| numbers['mnp'.index s[-1]] }
-  pattern.gsub(/%[r]/) { |s| numbers[-1] ? "'#{numbers[-1]}'" : :nil }
+  pattern.gsub /%#?[avmnpr]/ do |s|
+    v = ([target, numbers.compact * '.'] + numbers)['avmnpr'.index s[-1]]
+    s[1] != '#' || v.is_a?(Numeric) ? v : v ? (Integer v rescue "'#{v}'") : :nil
+  end
 end
 
 module GEM
@@ -29,7 +30,7 @@ module GEM
   def self.pattern
     <<-GEM
 module %a
-  VERSION = '%v'
+  VERSION = %#v
 end
     GEM
   end
@@ -49,11 +50,11 @@ module RAILS
     <<-RAILS
 module %a
   module VERSION
-    MAJOR = %m
-    MINOR = %n
-    PATCH = %p
+    MAJOR = %#m
+    MINOR = %#n
+    PATCH = %#p
 
-    PRE = %r
+    PRE = %#r
 
     STRING = [MAJOR, MINOR, PATCH, PRE].compact * '.'
   end
@@ -183,8 +184,8 @@ Dir.chdir root do
 
   abort "#{PROGRAM}: invalid version data: #{data * ','}" if !((3..4) === data.size) || data[0..3].include?('')
 
-  numbers = data[0..2].each_with_index.map { |n, i| i <= index ? (i == index ? n.next : n) : 0 }
-  numbers << (pre || (data.size == 4 && index == 3 ? data[3].next : data[3])) unless release
+  numbers = data[0..2].each_with_index.map { |n, i| i <= index ? Integer(n).send(i == index ? :next : :itself) : 0 }
+  numbers << (pre || (Integer data[3] rescue data[3]).send(data.size == 4 && index == 3 ? :next : :itself)) unless release
   numbers.pop if numbers.size == 4 && numbers.last.to_s.empty?
 
   puts "#{PROGRAM}: #{target} from #{data.compact * '.'} to #{numbers.compact * '.'}"
