@@ -1,3 +1,16 @@
+## 0.3.0
+
+*   Fix critical bug with empty pre-release label
+*   Support `#` flag as an alternate form with Ruby escapes in pattern maps
+
+    *Pavol Zbell*
+
+## 0.2.1
+
+*   An attempt to fix critical bug with empty pre-release label 
+
+    *Pavol Zbell*
+
 ## 0.2.0
 
 *   Allow reading custom options file from specified root
