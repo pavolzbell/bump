@@ -1,6 +1,7 @@
 ## 0.3.0
 
 *   Fix critical bug with empty pre-release label
+
 *   Support `#` flag as an alternate form with Ruby escapes in pattern maps
 
     *Pavol Zbell*
@@ -32,6 +33,7 @@
 ## 0.1.3
 
 *   Support for short version number codes as arguments
+
 *   Refactor tests and setup Travis
 
     *Pavol Zbell*
@@ -51,7 +53,9 @@
 ## 0.1.0
 
 *   Add support for `--init` option
+
 *   Switch to `gem` schema by default
+
 *   Partially improve error reporting
 
     *Pavol Zbell*
