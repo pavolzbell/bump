@@ -16,7 +16,8 @@ end
 
 def sub_build(pattern, target, numbers)
   pattern.gsub! /%[av]/, '%a' => target, '%v' => numbers.compact * '.'
-  pattern.gsub(/%[mnpr]/) { |s| numbers['mnpr'.index s[-1]] }
+  pattern.gsub!(/%[mnp]/) { |s| numbers['mnp'.index s[-1]] }
+  pattern.gsub(/%[r]/) { |s| numbers[-1] ? "'#{numbers[-1]}'" : :nil }
 end
 
 module GEM
@@ -52,7 +53,7 @@ module %a
     MINOR = %n
     PATCH = %p
 
-    PRE = '%r'
+    PRE = %r
 
     STRING = [MAJOR, MINOR, PATCH, PRE].compact * '.'
   end
