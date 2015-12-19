@@ -1,5 +1,4 @@
-# coding: utf-8
-require File.expand_path '../lib/bump/version', __FILE__
+require_relative 'lib/bump/version'
 
 Gem::Specification.new do |s|
   s.name          = 'bump'
@@ -21,4 +20,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake',    '~> 10.0'
   s.add_development_dependency 'rspec',   '~> 3.3.0'
   s.add_development_dependency 'aruba',   '~> 0.9.0'
+
+  s.add_development_dependency 'pry'
 end
