@@ -1,3 +1,5 @@
+**rename the gem so it can be available on rubygems**
+
 general
 
 - document options a bit more here
@@ -18,6 +20,8 @@ general
 
 - add `--sync` as alias for both `--pull` and `--push`
 - add `--author` for commit author (or add `--commit` for custom commit args? similar for tag, push, pull ...)
+- add `--current` to print current version
+- add `--[no]-commit` to make git commit?
 
 - rename `--silent` to `--interactive` (alias as `-i`), on by default
 - introduce `--[no]-verbose` off meaning no stdout of ext commands (stderr of ext commands still going), on by default
@@ -49,6 +53,7 @@ general
 - for semver version schema use rubysemver gem
 
 - target schema + version schema at 1.2.3-rc1+build.123
+  plain + plain  -> `VERSION`           : `1.2.3.rc1`
   gem   + gem    -> `my_gem/version.rb` : `module MyGem; VERSION = '1.2.3.rc1'; end`
   gem   + rails  -> `my_gem/version.rb` : `module MyGem; VERSION = '1.2.3.rc1'; end`
   gem   + semver -> `my_gem/version.rb` : `module MyGem; VERSION = '1.2.3-rc1+build.123'; end`
@@ -56,7 +61,7 @@ general
   rails + rails  -> `config/version.rb` : `module MyApp; module VERSION; MAJOR = 1; MINOR = 2; TINY = 3; PRE = 'rc1'; STRING = [MAJOR, MINOR, TINY, PRE].compact * '.'; end; end`
   rails + semver -> `config/version.rb` : `module MyApp; module VERSION; MAJOR = 1; MINOR = 2; PATCH = 3; PRE = 'rc1'; BUILD = 'build.123'; STRING = X; end; end`
     where X is: `[[[MAJOR, MINOR, PATCH] * '.', PRE].compact * '-', BUILD].compact * '+'`
-                `[MAJOR, MINOR, PATCH] * '.' << ('-' + PRE if PRE) << ('+' + BUILD if BUILD)`
+                `[MAJOR, MINOR, PATCH] * '.' << ('-' + PRE if PRE).to_s << ('+' + BUILD if BUILD).to_s`
 
 - in ruby code always store numeric version segments as numbers and empty strings as nils 
 
